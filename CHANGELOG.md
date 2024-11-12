@@ -18,9 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New feature to allow user to find all or specific solutions by person, shop type, or / and items type.
 - New feature to allow user to exit and catch keyboard interruption gracefully.
 - New feature to allow user to discover precise strict preferences of all constraints
+- New feature of GUI (Graphical User Interface) with robust menu system for user to interact much easily with a better UX (user experience).
 
 ### Changed
 - Improved the code readability with more consistent for Bobby's constraints.
 - Improved the code definition and implementation for multiple constraint additions.
 - Improved Customer constraint feature for "Must order from" and "Must not order from".
-
