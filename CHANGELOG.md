@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New feature to set solutions display options by person, shop type, and items type
 - New feature to allow user to find all or specific solutions by person, shop type, or / and items type.
 - New feature to allow user to exit and catch keyboard interruption gracefully.
+- New feature to allow user to discover precise strict preferences of all constraints
 
 ### Changed
 - Improved the code readability with more consistent for Bobby's constraints.

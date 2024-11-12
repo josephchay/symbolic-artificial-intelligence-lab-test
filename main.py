@@ -89,6 +89,8 @@ def print_current_constraints(current_constraints):
         for i, constraint in enumerate(current_constraints, 1):
             if constraint.get('is_default', False):
                 print(f"{i}. {constraint['description']}")
+                if constraint.get('more_description'):
+                    print(f"   Strict Preference: {constraint['more_description']}")
         
         print("\nCustom Constraints:")
         custom_exists = False
@@ -96,6 +98,8 @@ def print_current_constraints(current_constraints):
             if not constraint.get('is_default', False):
                 custom_exists = True
                 print(f"{i}. {constraint['description']}")
+                if constraint.get('more_description'):
+                    print(f"   Note: {constraint['more_description']}")
         if not custom_exists:
             print("No custom constraints added yet.")
     else:
@@ -187,6 +191,7 @@ def create_default_constraints(model, x, y, person, shops):
         'shop': 'Fruit Shop',
         'items': ['Salak'],
         'description': 'Cathy will not pick Salak',
+        'more_description': 'Cathy will not pick Salak',
         'is_default': True
     })
     
@@ -198,6 +203,7 @@ def create_default_constraints(model, x, y, person, shops):
         'person2': 'Bobby',
         'shop': 'Fruit Shop',
         'description': 'Adam must have difference selection from Bobby in Fruit Shop',
+        'more_description': 'Adam and Bobby want to steal each other’s fruit, so they will order different fruit',
         'is_default': True
     })
     
@@ -209,6 +215,7 @@ def create_default_constraints(model, x, y, person, shops):
         'person2': 'Cathy',
         'shop': 'Fruit Shop',
         'description': 'Adam must have same selection as Cathy in Fruit Shop',
+        'more_description': 'Cathy likes to be unique in her choice and will not order the same fruit as anybody else, but with one exception: Adam and Cathy are actually best friends and always order the same fruit as each other',
         'is_default': True
     })
     
@@ -220,6 +227,7 @@ def create_default_constraints(model, x, y, person, shops):
         'shop': 'Fruit Shop',
         'items': ['Quenepa'],
         'description': 'Dean cannot select Quenepa from Fruit Shop',
+        'more_description': 'Dean dislikes Quenepa and will not order this fruit.',
         'is_default': True
     })
     
@@ -253,6 +261,11 @@ def add_custom_constraint(model_state, person, shops, current_constraints):
                 'type': constraint_choice.lower().replace(" ", "_"),
                 'description': ''
             }
+            
+            # Add prompt for additional description
+            more_description = get_user_input("Enter a strict preference explanation for this constraint")
+            if more_description:
+                new_constraint['more_description'] = more_description
             
             if "from specific shop" in constraint_choice:
                 shop = get_user_input("Select shop:", list(shops.keys()), allow_skip=False)
@@ -441,6 +454,34 @@ def add_custom_constraint(model_state, person, shops, current_constraints):
             if choice != "yes":
                 return
 
+def edit_constraint_description(current_constraints):
+    print("\nSelect a constraint to edit its description:")
+    print_current_constraints(current_constraints)
+    
+    constraint_list = [(i, c) for i, c in enumerate(current_constraints, 1)]
+    selected = get_user_input("Enter constraint number (or press Enter to cancel):", 
+                            [f"{i}. {c['description']}" for i, c in constraint_list],
+                            allow_skip=True)
+    
+    if selected:
+        idx = int(selected.split('.')[0]) - 1
+        constraint = current_constraints[idx]
+        
+        print(f"\nCurrent description: {constraint['description']}")
+        if constraint.get('more_description'):
+            print(f"Current note: {constraint['more_description']}")
+            
+        new_description = get_user_input(
+            "Enter new note (or press Enter to keep current):",
+            allow_skip=True
+        )
+        
+        if new_description:
+            constraint['more_description'] = new_description
+            print("Description updated successfully!")
+        else:
+            print("Description unchanged.")
+
 def rebuild_model(current_constraints, default_person, shops):
     """Rebuilds the model from scratch with given constraints."""
     model = cp_model.CpModel()
@@ -588,7 +629,8 @@ def solve_assignment():
             print("2. View current constraints")
             print("3. Set display options")
             print("4. Find solutions")
-            print("5. Exit")
+            print("5. Edit constraint descriptions")
+            print("6. Exit")
             
             choice = input("> ").strip()
             
@@ -704,8 +746,9 @@ def solve_assignment():
                         print_current_constraints(current_constraints)
                     
                     break
-                    
             elif choice == "5":
+                edit_constraint_description(current_constraints)
+            elif choice == "6":
                 print("Goodbye!")
                 return
             
