@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - New feature to find all possible solutions instead of just one.
+- New feature of multiple shop system to meet mandatory original Constraint Number 3
 
 ### Changed
 - Improved the code readability with more consistent for Bobby's constraints.
