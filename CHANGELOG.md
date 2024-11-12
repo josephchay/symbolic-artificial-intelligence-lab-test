@@ -21,4 +21,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Improved the code readability with more consistent for Bobby's constraints.
 - Improved the code definition and implementation for multiple constraint additions.
+- Improved Customer constraint feature for "Must order from" and "Must not order from".
 

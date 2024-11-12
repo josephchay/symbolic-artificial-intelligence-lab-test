@@ -105,6 +105,24 @@ def check_constraint_conflicts(new_constraint, current_constraints):
     conflicts = []
     
     for existing in current_constraints:
+        # Check for conflicts between must_order and must_not_order
+        if (new_constraint['type'] in ['must_order', 'must_not_order'] and 
+            existing['type'] in ['must_order', 'must_not_order']):
+            if (new_constraint['person1'] == existing['person1'] and 
+                new_constraint['shop'] == existing['shop']):
+                if new_constraint['type'] != existing['type']:
+                    conflicts.append({
+                        'constraint': existing,
+                        'reason': f"Conflicts with: {existing['description']} (opposite order requirement)",
+                        'is_opposite': True
+                    })
+                else:
+                    conflicts.append({
+                        'constraint': existing,
+                        'reason': f"Duplicate constraint: {existing['description']}",
+                        'is_duplicate': True
+                    })
+
         # Check for direct opposites
         if ('person1' in new_constraint and 'person2' in new_constraint and 
             'person1' in existing and 'person2' in existing):
@@ -128,7 +146,6 @@ def check_constraint_conflicts(new_constraint, current_constraints):
                     'different_selection' in existing['type']) or
                     ('different_selection' in new_constraint['type'] and 
                     'same_selection' in existing['type'])):
-                    print("YEAHHHHHHHHHHHHHH")
                     conflicts.append({
                         'constraint': existing,
                         'reason': f"Direct opposite of: {existing['description']}",
@@ -277,26 +294,44 @@ def add_custom_constraint(model_state, person, shops, current_constraints):
                         print("This constraint is only applicable for Fruit Shop.")
                         continue
             
-            elif "Must order from" in constraint_choice or "Must not order from" in constraint_choice:
-                shop = get_user_input("Select shop:", list(shops.keys()), allow_skip=False)
-                if not shop:
-                    print("Shop selection is required.")
-                    continue
-                    
-                new_constraint['shop'] = shop
-                
-                if "Must order from" in constraint_choice:
-                    new_constraint['description'] = f"{person1} must order from {shop}"
-                    if shop == "Dish Shop" and person1 == "Bobby":
-                        model_state.model.Add(model_state.y[0] >= 0)
-                    else:
-                        print("This constraint is only applicable for Bobby and Dish Shop.")
-                        continue
-                else:
-                    new_constraint['description'] = f"{person1} must not order from {shop}"
-                    if person1 == "Bobby" and shop == "Dish Shop":
-                        print("Bobby must order from Dish Shop (default constraint).")
-                        continue
+                elif "Must order from" in constraint_choice or "Must not order from" in constraint_choice:
+                    if "Must order from" in constraint_choice:
+                        new_constraint['type'] = 'must_order'
+                        new_constraint['description'] = f"{person1} must order from {shop}"
+                        
+                        # For Fruit Shop, person must select one of the available fruits
+                        if shop == "Fruit Shop":
+                            bool_vars = []
+                            for item in shops[shop].keys():
+                                bool_var = model_state.model.NewBoolVar(f'{person1}_{item}')
+                                bool_vars.append(bool_var)
+                                model_state.model.Add(model_state.x[person[person1]] == 
+                                                    shops[shop][item]).OnlyEnforceIf(bool_var)
+                            model_state.model.Add(sum(bool_vars) == 1)
+                            
+                        # For Dish Shop, only Bobby can order dishes
+                        elif shop == "Dish Shop":
+                            bool_vars = []
+                            for item in shops[shop].keys():
+                                bool_var = model_state.model.NewBoolVar(f'bobby_{item}')
+                                bool_vars.append(bool_var)
+                                model_state.model.Add(model_state.y[0] == 
+                                                    shops[shop][item]).OnlyEnforceIf(bool_var)
+                            model_state.model.Add(sum(bool_vars) == 1)
+                                
+                    else:  # Must not order from
+                        new_constraint['type'] = 'must_not_order'
+                        new_constraint['description'] = f"{person1} must not order from {shop}"
+                        
+                        # Check if it conflicts with mandatory constraints
+                        if person1 == "Bobby" and shop == "Dish Shop":
+                            print("Cannot restrict Bobby from Dish Shop (default constraint).")
+                            continue
+                            
+                        # For Fruit Shop, person cannot select any fruits
+                        if shop == "Fruit Shop":
+                            for item in shops[shop].keys():
+                                model_state.model.Add(model_state.x[person[person1]] != shops[shop][item])
                     
             elif "Cannot select" in constraint_choice:
                 shop = get_user_input("Select shop:", list(shops.keys()), allow_skip=False)
@@ -449,6 +484,28 @@ def rebuild_model(current_constraints, default_person, shops):
                     model.Add(x[default_person[constraint['person1']]] != 
                              x[default_person[constraint['person2']]])
                     
+            elif 'must_order' in constraint['type']:
+                if constraint['shop'] == "Fruit Shop":
+                    bool_vars = []
+                    for item in shops[constraint['shop']].keys():
+                        bool_var = model.NewBoolVar(f"{constraint['person1']}_{item}")
+                        bool_vars.append(bool_var)
+                        model.Add(x[default_person[constraint['person1']]] == 
+                                shops[constraint['shop']][item]).OnlyEnforceIf(bool_var)
+                    model.Add(sum(bool_vars) == 1)
+                elif constraint['shop'] == "Dish Shop" and constraint['person1'] == "Bobby":
+                    bool_vars = []
+                    for item in shops[constraint['shop']].keys():
+                        bool_var = model.NewBoolVar(f"bobby_{item}")
+                        bool_vars.append(bool_var)
+                        model.Add(y[0] == shops[constraint['shop']][item]).OnlyEnforceIf(bool_var)
+                    model.Add(sum(bool_vars) == 1)
+                    
+            elif 'must_not_order' in constraint['type']:
+                if constraint['shop'] == "Fruit Shop":
+                    for item in shops[constraint['shop']].keys():
+                        model.Add(x[default_person[constraint['person1']]] != 
+                                shops[constraint['shop']][item])
             elif 'must_select' in constraint['type']:
                 if constraint['shop'] == "Fruit Shop":
                     bool_vars = []
