@@ -125,9 +125,10 @@ def check_constraint_conflicts(new_constraint, current_constraints):
             if same_people and same_shop:
                 # Check for opposite types (same vs different)
                 if (('same_selection' in new_constraint['type'] and 
-                    existing['type'] == 'different_selection') or
+                    'different_selection' in existing['type']) or
                     ('different_selection' in new_constraint['type'] and 
-                    existing['type'] == 'same_selection')):
+                    'same_selection' in existing['type'])):
+                    print("YEAHHHHHHHHHHHHHH")
                     conflicts.append({
                         'constraint': existing,
                         'reason': f"Direct opposite of: {existing['description']}",
@@ -155,7 +156,7 @@ def check_constraint_conflicts(new_constraint, current_constraints):
                         'reason': f"Conflicts with: {existing['description']} (opposite item selection)",
                         'is_opposite': True
                     })
-    print(conflicts)
+    
     return conflicts
 
 def create_default_constraints(model, x, y, person, shops):
@@ -421,23 +422,49 @@ def rebuild_model(current_constraints, default_person, shops):
     model.Add(y[0] == shops["Dish Shop"]["Risotto"]).OnlyEnforceIf(bobby_risotto)
     model.Add(bobby_pasta + bobby_risotto == 1)
 
-    # Rebuild all constraints
+    # Track which constraints have been applied
+    applied_constraints = set()
+
+    # Apply all constraints
     for constraint in current_constraints:
-        if constraint['type'] == 'cannot_select':
-            if constraint['shop'] == "Fruit Shop":
-                model.Add(x[default_person[constraint['person1']]] != 
-                         shops[constraint['shop']][constraint['items'][0]])
-                
-        elif constraint['type'] == 'same_selection':
-            if constraint['shop'] == "Fruit Shop":
-                model.Add(x[default_person[constraint['person1']]] == 
-                         x[default_person[constraint['person2']]])
-                
-        elif constraint['type'] == 'different_selection':
-            if constraint['shop'] == "Fruit Shop":
-                model.Add(x[default_person[constraint['person1']]] != 
-                         x[default_person[constraint['person2']]])
-                
+        constraint_key = f"{constraint['type']}_{constraint.get('person1', '')}_{constraint.get('person2', '')}_{constraint.get('shop', '')}"
+        
+        if constraint_key in applied_constraints:
+            continue
+            
+        try:
+            if 'cannot_select' in constraint['type']:
+                if constraint['shop'] == "Fruit Shop":
+                    for item in constraint['items']:
+                        model.Add(x[default_person[constraint['person1']]] != 
+                                shops[constraint['shop']][item])
+                    
+            elif 'same_selection' in constraint['type']:
+                if constraint['shop'] == "Fruit Shop":
+                    model.Add(x[default_person[constraint['person1']]] == 
+                             x[default_person[constraint['person2']]])
+                    
+            elif 'different_selection' in constraint['type']:
+                if constraint['shop'] == "Fruit Shop":
+                    model.Add(x[default_person[constraint['person1']]] != 
+                             x[default_person[constraint['person2']]])
+                    
+            elif 'must_select' in constraint['type']:
+                if constraint['shop'] == "Fruit Shop":
+                    bool_vars = []
+                    for item in constraint['items']:
+                        bool_var = model.NewBoolVar(f"{constraint['person1']}_{item}")
+                        bool_vars.append(bool_var)
+                        model.Add(x[default_person[constraint['person1']]] == 
+                                shops[constraint['shop']][item]).OnlyEnforceIf(bool_var)
+                    model.Add(sum(bool_vars) == 1)
+
+            applied_constraints.add(constraint_key)
+            
+        except Exception as e:
+            print(f"Warning: Failed to apply constraint {constraint['description']}: {str(e)}")
+            continue
+
     return model, x, y
 
 def display_menu():
@@ -631,7 +658,7 @@ def solve_assignment():
     except Exception as e:
         print(f"\nAn error occurred: {str(e)}")
         print("Please try again.")
-        
+
 
 if __name__ == '__main__':
     print("Welcome to the Food Constraint Satisfiability Problem (CSP)!")
