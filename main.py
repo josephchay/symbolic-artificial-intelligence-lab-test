@@ -1,10 +1,10 @@
 from ortools.sat.python import cp_model
 
 model = cp_model.CpModel()
-person = dict(adam=0,
-              bobby=1,
-              cathy=2,
-              dean=3)
+person = dict(Adam=0,
+              Bobby=1,
+              Cathy=2,
+              Dean=3)
 fruit = dict(Papaya=0,
              Quenepa=1,
              Rambutan=2,
@@ -13,10 +13,10 @@ fruit = dict(Papaya=0,
 x = [model.NewIntVar(0, len(fruit), f'x_{i}') for i in range(len(person))]
 
 # Constraint C ≠ S
-model.Add(x[person['cathy']] != fruit['Salak'])  # C≠S
+model.Add(x[person['Cathy']] != fruit['Salak'])
 
 # Constraint A ≠ B
-model.Add(x[person['adam']] != x[person['bobby']])  #
+model.Add(x[person['Adam']] != x[person['Bobby']])
 
 # Constraint B ∈ {P,R}
 flags = [model.NewBoolVar(f'flag{i}') for i in range(4)]
@@ -25,12 +25,12 @@ for i in range(len(person)):
         model.Add(x[i] == i).OnlyEnforceIf(flags[i])
         model.Add(x[i] != i).OnlyEnforceIf(flags[i].Not())
 
-# Constraint C ∉ {B, D},
-model.Add(x[person['cathy']] != x[person['bobby']])
-model.Add(x[person['cathy']] != x[person['dean']])
+# Constraint C ∉ {B, D}
+model.Add(x[person['Cathy']] != x[person['Bobby']])
+model.Add(x[person['Cathy']] != x[person['Dean']])
 
 # Constraint D ≠ Q
-model.Add(x[person['dean']] != fruit['Quenepa'])
+model.Add(x[person['Dean']] != fruit['Quenepa'])
 
 solver = cp_model.CpSolver()
 status = solver.Solve(model)
