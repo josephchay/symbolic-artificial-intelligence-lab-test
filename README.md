@@ -31,9 +31,9 @@ pip install -r requirements.txt
 python main.py
 ```
 
-## Usage
+## All Features & Extraordinary Features Usages
 
-### Home Menu
+### GUI Home Menu
 
 ![image](https://github.com/user-attachments/assets/8863e58d-f05b-470d-9d92-64fee6e19fd0)
 
@@ -85,9 +85,34 @@ As seen in the image above, this is the image example of all the possible soluti
 
 ![image](https://github.com/user-attachments/assets/df73405f-809a-4f25-82e8-aaaf7b2b6c87)
 
-
 ![image](https://github.com/user-attachments/assets/54ea74bc-6ca6-4485-9c02-ba97ec5ac37a)
 
 The above is for the second option mainly to show all the solutions based on the selected shop to include in the table. The persons are also allowed to be selected or skipped as per the desire of the user.
 
 > For instance, as shown in the sample image above, That's the possible results for the fruit shop and under the person Cathy.
+
+**Filter and find solutions based on selected shops and / or item type**
+
+![image](https://github.com/user-attachments/assets/f0b905c5-31e5-41be-9194-805d4ba65240)
+
+As seen in the image above, the third option under this `Find Solution` category allows users to Filter the solution display based on shops or item types to which the table will display only the selected items and / or the selected shop type.
+
+#### Edit Description
+
+![image](https://github.com/user-attachments/assets/821bb9b9-94b4-4b73-804a-5fbb781a4950)
+
+This is one of the crucial functionality of the program, where the input panel will list out all of the possible options for the existing constraints, and the user will then select which one has its First Order Logic or Propositional Logic that needs to be changed. 
+
+![image](https://github.com/user-attachments/assets/c71cf820-54c7-499b-a5e8-b43a3e444690)
+
+Upone which the user will be presented with a text box to include his logic and texts. 
+
+> The dialogue boxes contains a `skip` button to allow the user to exit that input prompt if he no longer desires to proceed.
+
+#### Exit Program
+
+Finally the last button on the right is the exit button to which allows the user to exit the program without any errors.
+
+It is also notable that our prorgam was developed in such a way there was multiple uses of `try-catch` blocks accompanied by use of `switch-case` as well as minor `if-else` blocks which assist in creating an environment to ensure graceful error handling.
+
+> For instance, the program allows the user to exit from the terminal also known as a `KeyboardInterrupt` exception. This exception has been caught well in the event that the user decides to quit the program via the terminal instead of the GUI (presenting a choice for the user). There will be no error but rather a friendly `Application successful terminated!` messsage shown as compared to not handling it.

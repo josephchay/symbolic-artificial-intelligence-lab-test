@@ -1,4 +1,5 @@
 # Import required libraries
+import sys
 import tkinter as tk  # Main GUI library
 from tkinter import ttk, messagebox, scrolledtext  # Additional GUI components
 from ortools.sat.python import cp_model  # Google's constraint programming solver
@@ -1182,6 +1183,10 @@ def main():
     try:
         app = CSPSolverGUI(root)  # Initialize main application class
         root.mainloop()  # Start the Tkinter event loop
+    except KeyboardInterrupt:  # Handle Ctrl+C gracefully
+        print("\nApplication successfully termianted")  # Print successful termination message
+        root.destroy()  # Clean up the window
+        sys.exit(0)  # Exit cleanly
     except Exception as e:  # Catch any errors during execution
         messagebox.showerror(  # Show error dialog
             "Error",
