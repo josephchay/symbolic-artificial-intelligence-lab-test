@@ -1,5 +1,3 @@
-import sys
-from io import StringIO
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
 from ortools.sat.python import cp_model
@@ -126,6 +124,60 @@ class GUIInputDialog:
     def on_skip(self):
         self.result = [] if self.allow_multiple else None
         self.dialog.destroy()
+
+
+def create_default_constraints(model, x, y, person, shops):
+    constraints = []
+    
+    # 1. Cathy will not pick Salak
+    model.Add(x[person['Cathy']] != shops["Fruit Shop"]["Salak"])
+    constraints.append({
+        'type': 'cannot_select',
+        'person1': 'Cathy',
+        'shop': 'Fruit Shop',
+        'items': ['Salak'],
+        'description': 'Cathy will not pick Salak',
+        'more_description': 'Cathy will not pick Salak',
+        'is_default': True
+    })
+    
+    # 2. Adam and Bobby must have different fruits
+    model.Add(x[person['Adam']] != x[person['Bobby']])
+    constraints.append({
+        'type': 'different_selection',
+        'person1': 'Adam',
+        'person2': 'Bobby',
+        'shop': 'Fruit Shop',
+        'description': 'Adam must have difference selection from Bobby in Fruit Shop',
+        'more_description': 'Adam and Bobby want to steal each other’s fruit, so they will order different fruit',
+        'is_default': True
+    })
+    
+    # 3. Adam and Cathy must have the same fruit
+    model.Add(x[person['Adam']] == x[person['Cathy']])
+    constraints.append({
+        'type': 'same_selection',
+        'person1': 'Adam',
+        'person2': 'Cathy',
+        'shop': 'Fruit Shop',
+        'description': 'Adam must have same selection as Cathy in Fruit Shop',
+        'more_description': 'Cathy likes to be unique in her choice and will not order the same fruit as anybody else, but with one exception: Adam and Cathy are actually best friends and always order the same fruit as each other',
+        'is_default': True
+    })
+    
+    # 4. Dean dislikes Quenepa
+    model.Add(x[person['Dean']] != shops["Fruit Shop"]["Quenepa"])
+    constraints.append({
+        'type': 'cannot_select',
+        'person1': 'Dean',
+        'shop': 'Fruit Shop',
+        'items': ['Quenepa'],
+        'description': 'Dean cannot select Quenepa from Fruit Shop',
+        'more_description': 'Dean dislikes Quenepa and will not order this fruit.',
+        'is_default': True
+    })
+    
+    return constraints
 
 
 
@@ -545,12 +597,10 @@ class CSPSolverGUI:
             self.display_options['shops'] = self.get_user_input_gui(
                 "Select shops to show solutions for:",
                 list(self.shops.keys()),
-                allow_multiple=True
             )
             self.display_options['people'] = self.get_user_input_gui(
                 "Select people to show solutions for:",
                 list(self.default_person.keys()),
-                allow_multiple=True
             )
             
         elif solution_choice == "Show solutions with specific items selected":
