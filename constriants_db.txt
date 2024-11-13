@@ -1,0 +1,10 @@
+Cathy will not pick Salak
+Strict Preference: Cathy will not pick Salak
+Adam must have difference selection from Bobby in Fruit Shop
+Strict Preference: Adam and Bobby want to steal each other’s fruit, so they will order different fruit
+Adam must have same selection as Cathy in Fruit Shop
+Strict Preference: Cathy likes to be unique in her choice and will not order the same fruit as anybody else, but with one exception: Adam and Cathy are actually best friends and always order the same fruit as each other
+Dean cannot select Quenepa from Fruit Shop
+Strict Preference: Dean dislikes Quenepa and will not order this fruit.
+Bobby must select one of Pasta, Risotto from Dish Shop
+Strict Preference: Bobby will only order pasta or risotto
